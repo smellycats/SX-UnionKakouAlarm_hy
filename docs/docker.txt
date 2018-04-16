@@ -1,0 +1,1 @@
+ocker run -it -d --restart=always --name hy_kakou_bkcp -v /home/core/GitHub/SX-UnionKakouAlarm:/home -v /var/GitHub/SX-UnionKakouAlarm:/var centos-python3.6/requests:0.5 python3 /home/run.py
