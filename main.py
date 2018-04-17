@@ -1,8 +1,10 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 import os
 import time
 import datetime
 import json
+#import io
+#import sys
 
 import arrow
 import requests
@@ -11,6 +13,8 @@ from helper_kakou import Kakou
 from helper_sms import SMS
 from my_yaml import MyYAML
 from my_logger import *
+
+#sys.stdout = io.TextIOWrapper(sys.stdout.buffer,encoding='utf-8')
 
 
 debug_logging('/var/logs/error.log')
@@ -21,10 +25,6 @@ class BKCPAlarm(object):
     def __init__(self):
         self.ini = MyYAML('/home/my.yaml')
         self.my_ini = self.ini.get_ini()
-
-        # request方法类
-        #self.kk = Kakou(**dict(self.my_ini['kakou']))
-        #self.uk = UnionKakou(**dict(self.my_ini['union']))
 
         self.sms = SMS(**dict(self.my_ini['sms']))
         self.kakou = Kakou(**dict(self.my_ini['union']))
@@ -46,10 +46,6 @@ class BKCPAlarm(object):
             11: '进场',
             12: '出场'
         }
-        # 布控车牌字典形如 {'粤LXX266': {'kkdd': '东江大桥卡口',
-        # 'jgsj': <Arrow [2016-03-04T09:39:45.738000+08:00]>}}
-        #self.bkcp_dict = {}
-        self.time_flag = arrow.now('PRC')
         logger.info('start')
         
     def __del__(self):
@@ -67,14 +63,11 @@ class BKCPAlarm(object):
     def get_data(self):
         maxid = self.kakou.get_maxid()['maxid']
         if maxid > self.id_flag:
-            print(self.id_flag+1)
+            print('alarm={0}'.format(self.id_flag+1))
             info = self.kakou.get_vehicle_by_id(self.id_flag+1)
-            logger.info(self.id_flag+1)
+            logger.info('alarm={0}'.format(self.id_flag+1))
             logger.info(info)
             if info != {}:
-                print(arrow.now('PRC'))
-                print(info['pass_time'])
-                print(arrow.get(info['pass_time']).to('Asia/Shanghai').replace(hours=-8, minutes=15))
                 if arrow.now('PRC') < arrow.get(info['stop_time']) and arrow.now('PRC') < arrow.get(info['pass_time']).to('Asia/Shanghai').replace(hours=-8, minutes=15):
                     crossing_info = self.kakou.get_traffic_crossing_info_by_id(info['crossing_id'])
                     logger.info(crossing_info)
@@ -89,14 +82,6 @@ class BKCPAlarm(object):
 		            self.fx.get(info['direction_index'], '进城'), info['plate_no'])
                         self.send_sms(content, info['mobiles'])
             self.id_flag += 1
-        
-    def restart_config(self):
-        now = arrow.now('PRC')
-        t = now - self.time_flag
-        if t.total_seconds() > 60 * 60 * 2 and self.time_flag.hour == 1:
-            logger.info('restart')
-            return True
-        return False
 
 
     def loop_get_data(self):
@@ -107,8 +92,6 @@ class BKCPAlarm(object):
                 else:
                     time.sleep(1)
                     self.get_data()
-                if self.restart_config():
-                    break
             except Exception as e:
                 logger.exception(e)
                 time.sleep(15)
