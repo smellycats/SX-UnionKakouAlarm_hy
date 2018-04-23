@@ -86,7 +86,7 @@ class BKCPAlarm(object):
                 if info['disposition_reason'] == '99':
                     disposition_reason = info['res_str1']
                 else:
-                    sysdict_info = self.get_traffic_sysdict(
+                    sysdict_info = self.kakou.get_traffic_sysdict(
                         {'sysdict_type':1006,'sysdict_code':info['disposition_reason']})
                     if sysdict_info['total_count'] > 0:
                         disposition_reason = sysdict_info['items'][0]['sysdict_name']
