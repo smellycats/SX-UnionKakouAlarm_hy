@@ -106,7 +106,7 @@ class BKCPAlarm(object):
         while 1:
             try:
                 if self.id_flag == 0:
-                    self.id_flag = self.kakou.get_maxid()['maxid']
+                    self.id_flag = self.kakou.get_alarm_maxid()['maxid']
                 else:
                     time.sleep(1)
                     self.get_data()
